@@ -1,6 +1,6 @@
 /target/
 
-
+/.settings/
 /java/
 /src/test/
 /src/main/resources/
