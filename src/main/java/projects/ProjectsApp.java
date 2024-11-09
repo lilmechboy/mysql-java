@@ -1,6 +1,5 @@
 package projects;
 
-import projects.dao.DbConnection;
 import projects.exception.DbException;
 import projects.service.ProjectService;
 import projects.entity.Project;
@@ -17,41 +16,40 @@ public class ProjectsApp {
 	
 	//@formatter:off
 	private List<String> operations = List.of(
-		"1) Create and populate all tables",
-		"2) Add a project"
+		"1) Add a project"
 	);
 	// @formatter:on
 
 	public static void main(String[] args) {
-		new ProjectsApp().displayMenu();
+		new ProjectsApp().processUserSelection();
 
 	}
 	
-	private void displayMenu() {
+	private void processUserSelection() {
 		boolean done = false;
 		
 		while(!done) {
-			int operation = getOperation();
 			
 			try {
-			switch(operation) {
-			case -1:
-				done = exitMenu();
-				break;
+				int selection = getUserSelection();
+				switch(selection) {
+				case -1:
+					done = exitMenu();
+					break;
 				
-			case 1:
-				createTables();
-				break;
+				case 1:
+					createProject();
+					break;
 				
-			case 2:
-				addProject();
-				break;
-				
-			default:
-				System.out.println("\n" + operation + " is not valid. Try again.");
-				break;
+//				case 2:
+//					addProject();
+//					break;
+//				
+				default:
+					System.out.println("\n" + selection + " is not valid. Try again.");
+					break;
 			
-			}
+				}
 			} catch(Exception e) {
 				System.out.println("\nError: " + e.toString() + " Try again");
 			}
@@ -59,50 +57,49 @@ public class ProjectsApp {
 		
 	}
 	
-	private void addProject() {
-		String name = getStringInput("Enter the project name");
-		BigDecimal estimatedHours = getBigDecimalInput("Enter the estimated hours");
-		BigDecimal actualHours = getBigDecimalInput("Enter the actual hours");
-		Integer difficulty = getIntInput("Enter how difficult the project is");
-		String notes = getStringInput("Enter project notes");
+	private void createProject() {
+		String projectName = getStringInput("Enter the project name");
+		BigDecimal estimatedHours = getDecimalInput("Enter the estimated hours");
+		BigDecimal actualHours = getDecimalInput("Enter the actual hours");
+		Integer difficulty = getIntInput("Enter the project difficulty (1-5)");
+		String notes = getStringInput("Enter the project notes");
 		
 		Project project = new Project();
 		
-		project.setProjectName(name);
+		project.setProjectName(projectName);
 		project.setEstimatedHours(estimatedHours);
 		project.setActualHours(actualHours);
 		project.setDifficulty(difficulty);
 		project.setNotes(notes);
 		
 		Project dbProject = projectService.addProject(project);
-		System.out.println("You added this project: \n" + dbProject);
+		System.out.println("You have successfully created projec: " + dbProject);
 		
 		
 	}
 
-	private void createTables() {
-		projectService.createAndPopulateTables();
-		System.out.println("\nTables created and populated!");
-		
-	}
+//	private void addProject() {
+//		projectService.createAndPopulateTables();
+//		System.out.println("\nTables created and populated!");
+//		
+//	}
 
 	private boolean exitMenu() {
 		System.out.println("\nExiting the menu.");
 		return true;
 	}
 
-	private int getOperation() {
+	private int getUserSelection() {
 		printOperations();
-		Integer op = getIntInput("Enter an operation number (Press Enter to quit)");
+		Integer input = getIntInput("Enter a menu selection");
 		
-		return Objects.isNull(op) ? -1 : op;
+		return Objects.isNull(input) ? -1 : input;
 	}
 
 	private void printOperations() {
-		System.out.println();
-		System.out.println("Here's what you can do:");
+		System.out.println("\n These are the available selections. Press the Enter key to quit:");
 		
-		operations.forEach(op -> System.out.println("	" + op));
+		operations.forEach(line -> System.out.println("   " + line));
 				
 	}
 	
@@ -114,13 +111,15 @@ public class ProjectsApp {
 		}
 		
 		try {
-			return Integer.parseInt(input);
+			return Integer.valueOf(input);
 		}
 		catch (NumberFormatException e) {
 			throw new DbException(input + " is not a valid number.");
+			
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private Double getDoubleInput(String prompt) {
 		String input = getStringInput(prompt);
 		
@@ -137,24 +136,24 @@ public class ProjectsApp {
 	}
 	
 	private String getStringInput(String prompt) {
-		System.out.println(prompt + ": ");
-		String line = scanner.nextLine();
+		System.out.print(prompt + ": ");
+		String input = scanner.nextLine();
 		
-		return line.isBlank() ? null : line.trim();
+		return input.isBlank() ? null : input.trim();
 	}
 	
-	private BigDecimal getBigDecimalInput(String prompt) {
-		Double input = getDoubleInput(prompt);
+	private BigDecimal getDecimalInput(String prompt) {
+		String input = getStringInput(prompt);
 		
 		if(Objects.isNull(input)) {
 			return null;
 		}
 		
 		try {
-			return BigDecimal.valueOf(input);
+			return new BigDecimal(input).setScale(2);
 		}
 		catch (NumberFormatException e) {
-			throw new DbException(input + " is not a valid BigDecimal.");
+			throw new DbException(input + " is not a valid decimal number.");
 		}
 	}
 	
