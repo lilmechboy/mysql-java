@@ -146,14 +146,17 @@ public class ProjectDao extends DaoBase {
 				}
 				
 				if(Objects.nonNull(project)) {
-					project.getMaterials().addAll(fetchProjectMaterials(conn, projectId));
+					project.getMaterials().addAll(fetchMaterialsForProject(conn, projectId));
 					
-					project.getSteps().addAll(fetchProjectSteps(conn, projectId));
+					project.getSteps().addAll(fetchStepsForProject(conn, projectId));
 					
-					project.getCategories().addAll(fetchProjectCategories(conn, projectId));
+					project.getCategories().addAll(fetchCategoriesForProject(conn, projectId));
 					
 					
 				}
+				
+				commitTransaction(conn);
+				
 				return Optional.ofNullable(project);
 			}
 			catch(Exception e) {
@@ -168,15 +171,14 @@ public class ProjectDao extends DaoBase {
 		}
 	}
 
-	private List<Category> fetchProjectCategories(Connection conn, Integer projectId) throws SQLException {
+	private List<Category> fetchCategoriesForProject(Connection conn, Integer projectId) throws SQLException {
 		
 		//formatter:off
 		String sql = ""
 		+ "SELECT c.* "
-		+"FROM " + PROJECT_CATEGORY_TABLE + " pc "
-		+ "JOIN " + CATEGORY_TABLE + " c USING (category_id)"
-		+ "WHERE project_id = ? "
-		+ "ORDER BY c.category_name";
+		+"FROM " + CATEGORY_TABLE + " c "
+		+ "JOIN " + PROJECT_CATEGORY_TABLE + " pc USING (category_id)"
+		+ "WHERE project_id = ? ";
 		//formatter:on
 		
 		try(PreparedStatement stmt = conn.prepareStatement(sql))  {
@@ -193,8 +195,8 @@ public class ProjectDao extends DaoBase {
 		}
 	}
 
-	private List<Step> fetchProjectSteps(Connection conn, Integer projectId) throws SQLException {
-		String sql = "SELECT s.* FROM " + STEP_TABLE + " s WHERE s.recipe_id = ? " + "ORDER BY step_id" ;
+	private List<Step> fetchStepsForProject(Connection conn, Integer projectId) throws SQLException {
+		String sql = "SELECT s.* FROM " + STEP_TABLE + " s WHERE s.project_id = ? " + "ORDER BY step_id" ;
 		
 		try(PreparedStatement stmt = conn.prepareStatement(sql)) {
 			setParameter(stmt, 1, projectId, Integer.class);
@@ -212,11 +214,11 @@ public class ProjectDao extends DaoBase {
 		}
 	}
 
-	private List<Material> fetchProjectMaterials(Connection conn, Integer projectId) throws SQLException {
+	private List<Material> fetchMaterialsForProject(Connection conn, Integer projectId) throws SQLException {
 		//formatter:off
 		String sql = ""
 				+ "SELECT m.* " + "FROM " + MATERIAL_TABLE + " m "
-				+ "WHERE recipe_id = ? "
+				+ "WHERE m.project_id = ? "
 				+ "ORDER BY material_name";
 		//formatter:on
 		
