@@ -131,7 +131,21 @@ public class ProjectService {
 
 		return projectDao.fetchProjectById(projectId)
 				.orElseThrow(() -> new NoSuchElementException(
-						"Project with ID= " + projectId + " does not exist."));
+						"\nProject with ID= " + projectId + " does not exist."));
+	}
+
+
+	public void modifyProjectDetails(Project project) {
+		if(!projectDao.modifyProjectDetails(project)) {
+			throw new DbException("\nProject with ID=" + project.getProjectId() + " does not exist");	
+		}
+	}
+
+
+	public void deleteProject(Integer projectId) {
+		if(!projectDao.deleteProject(projectId)) {
+			throw new DbException("\nProject with ID=" + projectId + " does not exist");
+		}
 	}
 	
 }
